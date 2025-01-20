@@ -3,7 +3,7 @@ const express = require('express');
 const app = express()
 const cors = require('cors');
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 // middleware
@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
         version: ServerApiVersion.v1,
         strict: true,
         deprecationErrors: true,
-    } 
+    }
 });
 
 async function run() {
@@ -36,7 +36,7 @@ async function run() {
         const userCollection = client.db("learnaMentDB").collection("users");
         const teacherReqCollection = client.db("learnaMentDB").collection("teacherReq");
 
- 
+
 
 
         // users api 
@@ -75,6 +75,18 @@ async function run() {
             const email = req.params.email;
             const query = { email: email };
             const result = await teacherReqCollection.findOne(query);
+            res.send(result)
+        })
+
+        app.patch('/teacherReqAgain/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: "pending"
+                },
+            };
+            const result = await teacherReqCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
 
