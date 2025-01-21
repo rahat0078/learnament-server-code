@@ -1,6 +1,7 @@
 require('dotenv').config()
 const express = require('express');
 const app = express()
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -35,6 +36,14 @@ async function run() {
         // database collection 
         const userCollection = client.db("learnaMentDB").collection("users");
         const teacherReqCollection = client.db("learnaMentDB").collection("teacherReq");
+
+
+        // create jwt token 
+        app.post('/jwt', async (req, res) => {
+            const user = req.body
+            const token = await jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ token });
+        })
 
 
 
