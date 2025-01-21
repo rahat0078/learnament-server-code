@@ -50,7 +50,14 @@ async function run() {
 
         // users api 
         app.get('/users', async (req, res) => {
-            const result = await userCollection.find().toArray();
+            const search = req.query.search || '';
+            const query = {
+                $or: [
+                    { name: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } }
+                ]
+            };
+            const result = await userCollection.find(query).toArray();
             res.send(result)
         })
 
@@ -66,8 +73,36 @@ async function run() {
             }
         })
 
+        // make a user admin 
+        app.patch('/user/makeAdmin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result)
+        })
 
-        // teacher request 
+
+
+        // teacher request  apis
+
+        // get teachers requests
+        app.get('/teachersRequests', async (req, res) => {
+            const search = req.query.search || "";
+            const query = search
+                ? { name: { $regex: search, $options: 'i' } }
+                : {};
+
+            const result = await teacherReqCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // post teacher request 
+
         app.post('/teacherReq', async (req, res) => {
             const teacherReq = req.body;
             const query = { email: teacherReq.email };
@@ -93,6 +128,32 @@ async function run() {
             const updateDoc = {
                 $set: {
                     status: "pending"
+                },
+            };
+            const result = await teacherReqCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // approve teacher request
+        app.patch('/teacher/approve/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: "approved"
+                },
+            };
+            const result = await teacherReqCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // reject teacher request
+        app.patch('/teacher/reject/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: "rejected"
                 },
             };
             const result = await teacherReqCollection.updateOne(filter, updateDoc)
