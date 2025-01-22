@@ -37,7 +37,7 @@ async function run() {
         const userCollection = client.db("learnaMentDB").collection("users");
         const teacherReqCollection = client.db("learnaMentDB").collection("teacherReq");
 
-
+        // jwt related apis
         // create jwt token 
         app.post('/jwt', async (req, res) => {
             const user = req.body
@@ -45,6 +45,19 @@ async function run() {
             res.send({ token });
         })
 
+        const verifyToken = (req, res, next) => {
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'Unauthorized access' })
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'Unauthorized access' })
+                }
+                req.decoded = decoded
+                next()
+            });
+        }
 
 
 
@@ -61,10 +74,44 @@ async function run() {
             res.send(result)
         })
 
+        // get admin 
+        app.get('/users/admin/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                res.status(403).send('Forbidden access')
+            }
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let admin = false
+            if (user) {
+                admin = user?.role === 'admin'
+            }
+            res.send({ admin })
+        })
+
+        // get teacher 
+
+        app.get('/user/teacher/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const teacher = user?.isTeacher || false;
+            res.send({ teacher });
+        });
+        
+
+
+
+
+
+
         app.get('/user/:email', async (req, res) => {
-            const email = req.params.email
-            const query = {email: email};
-            const result = await userCollection.find(query).toArray();
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await userCollection.findOne(query)
             res.send(result)
         })
 
