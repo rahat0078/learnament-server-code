@@ -61,6 +61,13 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const query = {email: email};
+            const result = await userCollection.find(query).toArray();
+            res.send(result)
+        })
+
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email }
@@ -72,6 +79,21 @@ async function run() {
                 res.send(result)
             }
         })
+
+
+        // set user as a teacher 
+        app.patch('/user/setTeacher/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updatedDoc = {
+                $set: {
+                    isTeacher: true
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result)
+        })
+
 
         // make a user admin 
         app.patch('/user/makeAdmin/:id', async (req, res) => {
