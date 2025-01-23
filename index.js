@@ -254,7 +254,31 @@ async function run() {
             res.send(result)
         })
 
+        // class approved by admin 
+        app.patch('/classes/approveAdmin/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: "approved"
+                },
+            };
+            const result = await classCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
 
+        // class rejected by admin 
+        app.patch('/classes/rejectAdmin/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: "rejected"
+                },
+            };
+            const result = await classCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
 
 
 
