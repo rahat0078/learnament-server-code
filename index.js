@@ -36,6 +36,7 @@ async function run() {
         // database collection 
         const userCollection = client.db("learnaMentDB").collection("users");
         const teacherReqCollection = client.db("learnaMentDB").collection("teacherReq");
+        const classCollection = client.db("learnaMentDB").collection("classes");
 
         // jwt related apis
         // create jwt token 
@@ -59,10 +60,21 @@ async function run() {
             });
         }
 
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === "admin";
+            if (!isAdmin) {
+                return res.status(403).send({ message: "forbidden Access" })
+            }
+            next()
+        }
+
 
 
         // users api 
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const search = req.query.search || '';
             const query = {
                 $or: [
@@ -101,14 +113,14 @@ async function run() {
             const teacher = user?.isTeacher || false;
             res.send({ teacher });
         });
-        
 
 
 
 
 
 
-        app.get('/user/:email', async (req, res) => {
+
+        app.get('/user/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const result = await userCollection.findOne(query)
@@ -129,7 +141,7 @@ async function run() {
 
 
         // set user as a teacher 
-        app.patch('/user/setTeacher/:email', async (req, res) => {
+        app.patch('/user/setTeacher/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const updatedDoc = {
@@ -143,7 +155,7 @@ async function run() {
 
 
         // make a user admin 
-        app.patch('/user/makeAdmin/:id', async (req, res) => {
+        app.patch('/user/makeAdmin/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -160,7 +172,7 @@ async function run() {
         // teacher request  apis
 
         // get teachers requests
-        app.get('/teachersRequests', async (req, res) => {
+        app.get('/teachersRequests', verifyToken, verifyAdmin, async (req, res) => {
             const search = req.query.search || "";
             const query = search
                 ? { name: { $regex: search, $options: 'i' } }
@@ -172,7 +184,7 @@ async function run() {
 
         // post teacher request 
 
-        app.post('/teacherReq', async (req, res) => {
+        app.post('/teacherReq', verifyToken, async (req, res) => {
             const teacherReq = req.body;
             const query = { email: teacherReq.email };
             const exist = await teacherReqCollection.findOne(query);
@@ -184,14 +196,14 @@ async function run() {
             }
         })
 
-        app.get('/teacherReq/:email', async (req, res) => {
+        app.get('/teacherReq/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const result = await teacherReqCollection.findOne(query);
             res.send(result)
         })
 
-        app.patch('/teacherReqAgain/:id', async (req, res) => {
+        app.patch('/teacherReqAgain/:id', verifyToken, async (req, res) => {
             const id = req.params.id
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -204,7 +216,7 @@ async function run() {
         })
 
         // approve teacher request
-        app.patch('/teacher/approve/:id', async (req, res) => {
+        app.patch('/teacher/approve/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -217,7 +229,7 @@ async function run() {
         })
 
         // reject teacher request
-        app.patch('/teacher/reject/:id', async (req, res) => {
+        app.patch('/teacher/reject/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -226,6 +238,13 @@ async function run() {
                 },
             };
             const result = await teacherReqCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // class related apis
+        app.post('/addClass', verifyToken, async (req, res) => {
+            const classInfo = req.body;
+            const result = await classCollection.insertOne(classInfo)
             res.send(result)
         })
 
