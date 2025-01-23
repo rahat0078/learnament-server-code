@@ -279,6 +279,21 @@ async function run() {
             const result = await classCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
+        // teacher get his classes
+        app.get('/classes/teacher/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            const filter = {email: email};
+            const result = await classCollection.find(filter).toArray();
+            res.send(result)
+        })
+
+        // delete class 
+        app.delete('/class/delete/:id', verifyToken, async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await classCollection.deleteOne(query);
+            res.send(result)
+        })
 
 
 
