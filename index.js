@@ -248,6 +248,12 @@ async function run() {
             res.send(result)
         })
 
+        // get all classes | only admin
+        app.get('/classes/admin', verifyToken, verifyAdmin, async (req, res) => {
+            const result = await classCollection.find().toArray();
+            res.send(result)
+        })
+
 
 
 
