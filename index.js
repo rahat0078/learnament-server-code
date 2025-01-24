@@ -251,9 +251,9 @@ async function run() {
         })
 
         // get class details 
-        app.get('/class/:id', verifyToken, async(req, res) => {
+        app.get('/class/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const result = await classCollection.findOne(filter);
             res.send(result)
         })
@@ -299,15 +299,35 @@ async function run() {
         // teacher get his classes
         app.get('/classes/teacher/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            const filter = {email: email};
+            const filter = { email: email };
             const result = await classCollection.find(filter).toArray();
             res.send(result)
         })
 
-        // delete class 
-        app.delete('/class/delete/:id', verifyToken, async(req, res) => {
+
+        // update class data 
+        app.patch("/classUpdate/:id", verifyToken, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)}
+            const classInfo = req.body;
+            const query = { _id: new ObjectId(id) };
+            const update = {
+                $set: {
+                    title: classInfo?.title,
+                    name: classInfo?.name,
+                    email: classInfo?.email,
+                    description: classInfo?.description,
+                    price: classInfo?.price,
+                    image: classInfo?.image
+                }
+            }
+            const result = await classCollection.updateOne(query, update);
+            res.send(result)
+        })
+
+        // delete class 
+        app.delete('/class/delete/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
             const result = await classCollection.deleteOne(query);
             res.send(result)
         })
