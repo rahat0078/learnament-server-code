@@ -242,6 +242,23 @@ async function run() {
         })
 
         // class related apis
+
+        // get all approved classes for all class page public route
+        app.get('/allClasses', async (req, res) => {
+            const query = { status: "approved" };
+            const result = await classCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        // get class details 
+        app.get('/class/:id', verifyToken, async(req, res) => {
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)}
+            const result = await classCollection.findOne(filter);
+            res.send(result)
+        })
+
+
         app.post('/addClass', verifyToken, async (req, res) => {
             const classInfo = req.body;
             const result = await classCollection.insertOne(classInfo)
