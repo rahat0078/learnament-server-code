@@ -390,10 +390,25 @@ async function run() {
 
         app.get('/assignments/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
-            const filter = {classId: id};
+            const filter = { classId: id };
             const result = await assignmentsCollection.find(filter).toArray();
             res.send(result)
         })
+
+        // assignment submit (just increment the total assignment submission number on class collection)
+        app.patch('/updateAssignment', verifyToken, async (req, res) => {
+            const { classId } = req.body;
+            const findClass = { _id: new ObjectId(classId) };
+            const isExistClass = await classCollection.findOne(findClass);
+            const totalAssignmentSubmit = isExistClass?.totalAssignmentSubmit
+                ? Number(isExistClass.totalAssignmentSubmit) + 1
+                : 1;
+
+            const result = await classCollection.updateOne(findClass, {
+                $set: { totalAssignmentSubmit }
+            });
+            res.send(result);
+        });
 
 
 
