@@ -358,22 +358,42 @@ async function run() {
 
 
         // get enrollment data by user 
-        app.get('/myEnrollment/:email', async (req, res) => {
+        app.get('/myEnrollment/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            const filter = {studentEmail: email};
+            const filter = { studentEmail: email };
             const result = await enrollmentsCollection.find(filter).toArray();
             res.send(result)
         })
 
 
-
-
         // assignments 
-        // app.post('/createAssignment', verifyToken, async (req, res) => {
-        //     const assignmentInfo = req.body;
-        //     const result = await assignmentsCollection.insertOne(assignmentInfo);
-        //     res.send(result)
-        // })
+        app.post('/createAssignment', verifyToken, async (req, res) => {
+            const assignmentInfo = req.body;
+            const classId = req?.body?.classId
+            const findClass = { _id: new ObjectId(classId) }
+            let totalAssignments = 0
+            const isExistClass = await classCollection.findOne(findClass)
+            if (isExistClass.totalAssignments) {
+                totalAssignments = Number(isExistClass.totalAssignments) + 1
+            } else {
+                totalAssignments = 1
+            }
+            await classCollection.updateOne(findClass, {
+                $set: {
+                    totalAssignments: totalAssignments
+                }
+            })
+            const result = await assignmentsCollection.insertOne(assignmentInfo);
+            res.send(result)
+        })
+
+
+        app.get('/assignments/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const filter = {classId: id};
+            const result = await assignmentsCollection.find(filter).toArray();
+            res.send(result)
+        })
 
 
 
