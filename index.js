@@ -37,6 +37,8 @@ async function run() {
         const userCollection = client.db("learnaMentDB").collection("users");
         const teacherReqCollection = client.db("learnaMentDB").collection("teacherReq");
         const classCollection = client.db("learnaMentDB").collection("classes");
+        const enrollmentsCollection = client.db("learnaMentDB").collection("enrollments");
+        const assignmentsCollection = client.db("learnaMentDB").collection("assignments");
 
         // jwt related apis
         // create jwt token 
@@ -333,9 +335,45 @@ async function run() {
         })
 
 
+        // enrollmentss
+        app.post('/enrollClass', verifyToken, async (req, res) => {
+            const enrollInfo = req.body;
+            const classId = req?.body?.classId
+            const classFind = { _id: new ObjectId(classId) }
+            let enrollmentCount = 0
+            const isExistClass = await classCollection.findOne(classFind)
+            if (isExistClass.enrollmentCount) {
+                enrollmentCount = Number(isExistClass.enrollmentCount) + 1
+            } else {
+                enrollmentCount = 1
+            }
+            await classCollection.updateOne(classFind, {
+                $set: {
+                    enrollmentCount: enrollmentCount
+                }
+            })
+            const result = await enrollmentsCollection.insertOne(enrollInfo);
+            res.send(result)
+        })
+
+
+        // get enrollment data by user 
+        app.get('/myEnrollment/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = {studentEmail: email};
+            const result = await enrollmentsCollection.find(filter).toArray();
+            res.send(result)
+        })
 
 
 
+
+        // assignments 
+        // app.post('/createAssignment', verifyToken, async (req, res) => {
+        //     const assignmentInfo = req.body;
+        //     const result = await assignmentsCollection.insertOne(assignmentInfo);
+        //     res.send(result)
+        // })
 
 
 
