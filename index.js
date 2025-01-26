@@ -31,7 +31,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         // database collection 
         const userCollection = client.db("learnaMentDB").collection("users");
@@ -261,6 +261,11 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/popular-classes', async (req, res) => {
+            const result = await classCollection.find().sort({ enrollmentCount: -1 }).limit(6).toArray();
+            res.send(result)
+        })
+
         app.get('/totalClasses', async (req, res) => {
             const query = { status: "approved" };
             const users = await classCollection.find(query).toArray();
@@ -374,7 +379,7 @@ async function run() {
 
         app.get('/totalEnrollments', async (req, res) => {
             const users = await enrollmentsCollection.find().toArray();
-            const result = users.length; 
+            const result = users.length;
             res.send({ totalEnrollments: result });
         })
 
@@ -450,7 +455,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
