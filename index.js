@@ -88,6 +88,14 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/totalUser', async (req, res) => {
+            const users = await userCollection.find().toArray();
+            const result = users.length; // No need for `await` here
+            res.send({ totalUsers: result });
+        })
+
+
+
         // get admin 
         app.get('/users/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
@@ -252,6 +260,13 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/totalClasses', async (req, res) => {
+            const query = { status: "approved" };
+            const users = await classCollection.find(query).toArray();
+            const result = users.length; // No need for `await` here
+            res.send({ totalClasses: result });
+        })
+
         // get class details 
         app.get('/class/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
@@ -356,6 +371,12 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/totalEnrollments', async (req, res) => {
+            const users = await enrollmentsCollection.find().toArray();
+            const result = users.length; 
+            res.send({ totalEnrollments: result });
+        })
+
 
         // get enrollment data by user 
         app.get('/myEnrollment/:email', verifyToken, async (req, res) => {
@@ -364,6 +385,8 @@ async function run() {
             const result = await enrollmentsCollection.find(filter).toArray();
             res.send(result)
         })
+
+
 
 
         // assignments 
