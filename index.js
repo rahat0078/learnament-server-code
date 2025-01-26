@@ -39,6 +39,7 @@ async function run() {
         const classCollection = client.db("learnaMentDB").collection("classes");
         const enrollmentsCollection = client.db("learnaMentDB").collection("enrollments");
         const assignmentsCollection = client.db("learnaMentDB").collection("assignments");
+        const feedbackCollection = client.db("learnaMentDB").collection("feedbacks");
 
         // jwt related apis
         // create jwt token 
@@ -432,6 +433,19 @@ async function run() {
             });
             res.send(result);
         });
+
+
+        // feedback 
+        app.post('/feedback', async (req, res) => {
+            const feedback = req.body;
+            const result = await feedbackCollection.insertOne(feedback)
+            res.send(result)
+        })
+
+        app.get('/feedbacks', async (req, res) => {
+            const result = await feedbackCollection.find().toArray();
+            res.send(result)
+        })
 
 
 
