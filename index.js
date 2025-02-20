@@ -256,10 +256,29 @@ async function run() {
 
         // get all approved classes for all class page public route
         app.get('/allClasses', async (req, res) => {
-            const query = { status: "approved" };
-            const result = await classCollection.find(query).toArray();
-            res.send(result)
-        })
+            const search = req.query.search || "";
+            const filter = req.query.filter || "Default";
+        
+            let query = { status: "approved" };
+        
+            if (search) {
+                query.$and = query.$and || [];
+                query.$and.push({ title: { $regex: search, $options: 'i' } });
+            }
+        
+            let sortOption = {};
+            if (filter !== "Default") {
+                if (filter === "Low to High") {
+                    sortOption = { price: 1 };
+                } else if (filter === "High to Low") {
+                    sortOption = { price: -1 }; 
+                }
+            } 
+        
+            const result = await classCollection.find(query).sort(sortOption).toArray();
+            res.send(result);
+        });
+        
 
         app.get('/popular-classes', async (req, res) => {
             const result = await classCollection.find().sort({ enrollmentCount: -1 }).limit(6).toArray();
